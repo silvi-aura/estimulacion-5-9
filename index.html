@@ -3477,6 +3477,8 @@ function viewHome(){
     h+=`<section class="card hero"><p class="eyebrow">Empecemos</p><h2 class="h-serif h-xl" style="margin:4px 0 8px">Contanos de tu hijo o hija</h2><p class="muted">Con su fecha de nacimiento te mostramos la alimentación, las actividades y los logros de su edad. Si tenés más de un hijo, podés sumarlos después.</p><button class="btn btn-primary mt" onclick="openChildForm(null,true)">Completar perfil</button></section>`;
   }
 
+  h+=payAskHTML();
+
   const idx=STAGES.indexOf(st), next=STAGES[idx+1];
   if(next && p){
     const dd=daysUntilMonth(next.from);
@@ -3531,7 +3533,7 @@ function premiumBanner(){
     <p class="h-serif h-lg" style="margin:4px 0 8px">Todo lo que necesitás, de 5 a 9 años</p>
     <p class="muted">Cuentos para cada edad, charlas difíciles paso a paso, termómetro de emociones, menú semanal, un juego nuevo cada día y varios hijos en la misma cuenta.</p>
     ${countdownHTML()}
-    <button class="btn btn-gold mt" onclick="openPremium()">Ver suscripción</button>
+    <div class="row wrap mt"><button class="btn btn-gold" onclick="openPremium()">Ver suscripción</button><button class="btn btn-ghost" onclick="openActivate()">Ya pagué: activar Premium</button></div>
   </div>`;
 }
 function countdownHTML(){
@@ -4509,7 +4511,8 @@ function openPremium(){
   }
   const locked=st.food.slice(1).map(f=>f.n).concat(st.stim.slice(1).map(a=>a.n));
   openModal(`<p class="eyebrow">Acceso Premium</p><h2 class="h-serif h-lg">Todo lo que necesitás, mes a mes</h2>
-    <p class="muted mt-s">Para la etapa de ${babyName()} ya tenés esperando:</p>
+    <button class="btn btn-ghost btn-sm mt-s" onclick="openActivate()">¿Ya pagaste en Hotmart? Activá tu Premium</button>
+    <p class="muted mt">Para la etapa de ${babyName()} ya tenés esperando:</p>
     <ul class="list">${locked.map(x=>`<li>🔒 ${x}</li>`).join("")}</ul>
     <div class="card mt" style="background:var(--bg-2);box-shadow:none"><ul class="list" style="margin-top:0">
       <li>🍎 3 opciones de alimentación, juegos y consejos para cada edad, de 5 a 9 años</li>
@@ -4527,14 +4530,16 @@ function openPremium(){
       <li>📚 Guías completas y novedades de temporada cada mes</li></ul></div>
     ${countdownHTML()}
     <p class="muted mt" style="font-size:.9rem">${esc(CONFIG.priceLabel)}</p>
+    <p class="h-serif h-md mt">Cómo hacerte Premium</p>
+    <ol class="steps"><li>Tocá <strong>Suscribirme en Hotmart</strong> y completá el pago.</li><li>Volvé a la app: te vamos a pedir el correo con el que pagaste.</li><li>Escribilo y tocá <strong>Validar acceso</strong>. Se desbloquea todo.</li></ol>
     <button class="btn btn-gold btn-block mt-s" onclick="goCheckout()">Suscribirme en Hotmart</button>
     <div class="divider"></div>
-    <p class="h-serif h-md">¿Ya te suscribiste?</p><p class="muted">Ingresá con el correo que usaste en tu compra de Hotmart.</p>
+    <p class="h-serif h-md">¿Ya pagaste en Hotmart?</p><p class="muted">Escribí el mismo correo con el que pagaste y se desbloquea todo el contenido Premium.</p>
     <label class="lbl" for="accEmail">Correo de Hotmart</label><input id="accEmail" type="email" inputmode="email" autocomplete="email" class="input" placeholder="tucorreo@ejemplo.com">
     <button class="btn btn-primary btn-block mt" id="accBtn" onclick="verifyAccess()">Validar acceso</button>
     <p id="accMsg" class="saved" style="font-size:.9rem"></p>`);
 }
-function goCheckout(){ window.open(CONFIG.hotmartCheckoutUrl,"_blank","noopener"); }
+function goCheckout(){ LS.set("checkoutAt",Date.now()); window.open(CONFIG.hotmartCheckoutUrl,"_blank","noopener"); }
 async function checkEmail(email){
   if(CONFIG.verifyEndpoint){
     const url=CONFIG.verifyEndpoint+(CONFIG.verifyEndpoint.includes("?")?"&":"?")+"email="+encodeURIComponent(email);
@@ -4549,7 +4554,7 @@ async function verifyAccess(){
   try{
     const ok=await checkEmail(email);
     if(ok){ S.access={email,active:true,checked:Date.now()}; LS.set("access",S.access); syncProfile(); closeModal(); toast("¡Bienvenida a Premium! 👑"); render(true); }
-    else { msg.style.color="var(--danger)"; msg.textContent="No encontramos una suscripción activa con ese correo. Revisá que sea el mismo de tu compra en Hotmart."; }
+    else { msg.style.color="var(--danger)"; msg.textContent="No encontramos una suscripción activa con ese correo. Revisá que sea el mismo con el que pagaste en Hotmart. Si recién pagaste, esperá un par de minutos y volvé a probar."; }
   }catch(e){ msg.style.color="var(--danger)"; msg.textContent="No se pudo verificar ahora. Revisá tu conexión y probá de nuevo."; }
   btn.textContent="Validar acceso"; btn.disabled=false;
 }
@@ -4562,6 +4567,39 @@ async function reverify(silent){
     render(true);
   }catch(e){ if(!silent) toast("No se pudo verificar ahora"); }
 }
+/* ===================== CÓMO ACTIVAR PREMIUM ===================== */
+function payAskHTML(){
+  if(isPremium() || LS.get("payAsk",null)) return "";
+  return `<div class="card gilded mt"><p class="h-serif h-md">¿Ya pagaste tu suscripción Premium?</p><p class="muted mt-s">Contanos y te mostramos cómo seguir.</p>
+    <div class="row wrap mt"><button class="btn btn-gold" onclick="payAnswer('hotmart')">Sí, pagué en Hotmart</button><button class="btn btn-ghost" onclick="payAnswer('free')">No, la estoy probando gratis</button></div></div>`;
+}
+function payAnswer(a){ LS.set("payAsk",a); render(true); if(a==="hotmart") openActivate(); else openFreeGuide(); }
+function openActivate(after){
+  openModal(`<p class="eyebrow">Activar Premium</p><h2 class="h-serif h-lg">${after?"¿Pudiste completar el pago?":"Activá tu Premium"}</h2>
+    <p class="muted mt-s">${after?"Si ya pagaste, escribí":"Escribí"} el mismo correo con el que pagaste en Hotmart y se desbloquea todo el contenido Premium en este celular.</p>
+    <label class="lbl" for="accEmail">Correo de tu compra en Hotmart</label><input id="accEmail" type="email" inputmode="email" autocomplete="email" class="input" placeholder="tucorreo@ejemplo.com">
+    <button class="btn btn-gold btn-block mt" id="accBtn" onclick="verifyAccess()">Validar acceso</button>
+    <p id="accMsg" class="saved" style="font-size:.9rem"></p>
+    <p class="muted mt" style="font-size:.9rem">¿No sabés cuál usaste? Buscá en tu correo el mail de Hotmart con la confirmación de tu compra.</p>
+    ${after?"":`<button class="btn btn-ghost btn-sm mt-s" onclick="openPremium()">Todavía no pagué: ver la suscripción</button>`}`);
+}
+function openFreeGuide(){
+  openModal(`<p class="eyebrow">Plan libre</p><h2 class="h-serif h-lg">Probala tranquila, sin pagar nada</h2>
+    <p class="muted mt-s">Todo lo que no tiene candadito es tuyo, gratis. Por ejemplo:</p>
+    <ul class="list"><li>🧩 ${CONFIG.freeOffline} juegos sin pantallas para esperas y viajes</li><li>🎲 Los primeros ${CONFIG.freeGameDays} días del plan de juegos</li><li>💬 ${CONFIG.freeNormal} respuestas a “¿Es normal que…?”</li><li>👧 El seguimiento de un hijo o hija</li></ul>
+    <p class="h-serif h-md mt">Si un día querés todo lo que tiene 🔒</p>
+    <ol class="steps"><li>Tocá la coronita 👑 de arriba.</li><li>Elegí <strong>Suscribirme en Hotmart</strong> y completá el pago.</li><li>Volvé a la app y escribí el correo con el que pagaste. Se desbloquea todo.</li></ol>
+    <button class="btn btn-primary btn-block mt" onclick="closeModal()">Entendido, empezar</button>`);
+}
+function maybeAskAfterCheckout(){
+  const t=LS.get("checkoutAt",0);
+  if(!t) return;
+  if(isPremium() || Date.now()-t>3*864e5){ LS.set("checkoutAt",0); return; }
+  if($("app").classList.contains("hidden")) return;
+  LS.set("checkoutAt",0);
+  openActivate(true);
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") setTimeout(maybeAskAfterCheckout,700); });
 function logoutAccess(){ S.access=null; LS.set("access",null); syncProfile(); closeModal(); toast("Acceso cerrado en este dispositivo"); render(); }
 
 function installSectionHTML(){
@@ -4597,6 +4635,7 @@ function startApp(){
   $("app").classList.remove("hidden");
   render();
   if(!S.profiles.length) openChildForm(null,true);
+  else maybeAskAfterCheckout();
   maybeShowIosBanner();
 }
 async function loadUpdates(){

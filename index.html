@@ -4531,7 +4531,7 @@ function openPremium(){
     ${countdownHTML()}
     <p class="muted mt" style="font-size:.9rem">${esc(CONFIG.priceLabel)}</p>
     <p class="h-serif h-md mt">Cómo hacerte Premium</p>
-    <ol class="steps"><li>Tocá <strong>Suscribirme en Hotmart</strong> y completá el pago.</li><li>Volvé a la app: te vamos a pedir el correo con el que pagaste.</li><li>Escribilo y tocá <strong>Validar acceso</strong>. Se desbloquea todo.</li></ol>
+    <ol class="steps"><li>Tocá <strong>Suscribirme en Hotmart</strong> y completá el pago.</li><li>Volvé a esta misma app. No hace falta instalarla de nuevo, aunque Hotmart te mande la guía de instalación.</li><li>Escribí el correo con el que pagaste y tocá <strong>Validar acceso</strong>. Se desbloquea todo.</li></ol>
     <button class="btn btn-gold btn-block mt-s" onclick="goCheckout()">Suscribirme en Hotmart</button>
     <div class="divider"></div>
     <p class="h-serif h-md">¿Ya pagaste en Hotmart?</p><p class="muted">Escribí el mismo correo con el que pagaste y se desbloquea todo el contenido Premium.</p>
@@ -4577,6 +4577,7 @@ function payAnswer(a){ LS.set("payAsk",a); render(true); if(a==="hotmart") openA
 function openActivate(after){
   openModal(`<p class="eyebrow">Activar Premium</p><h2 class="h-serif h-lg">${after?"¿Pudiste completar el pago?":"Activá tu Premium"}</h2>
     <p class="muted mt-s">${after?"Si ya pagaste, escribí":"Escribí"} el mismo correo con el que pagaste en Hotmart y se desbloquea todo el contenido Premium en este celular.</p>
+    <div class="fomo">📲 <span><strong>Es la misma app.</strong> Si ya la tenías instalada, no hace falta instalarla de nuevo aunque Hotmart te mande la guía de instalación: alcanza con escribir tu correo acá.</span></div>
     <label class="lbl" for="accEmail">Correo de tu compra en Hotmart</label><input id="accEmail" type="email" inputmode="email" autocomplete="email" class="input" placeholder="tucorreo@ejemplo.com">
     <button class="btn btn-gold btn-block mt" id="accBtn" onclick="verifyAccess()">Validar acceso</button>
     <p id="accMsg" class="saved" style="font-size:.9rem"></p>
@@ -4588,7 +4589,7 @@ function openFreeGuide(){
     <p class="muted mt-s">Todo lo que no tiene candadito es tuyo, gratis. Por ejemplo:</p>
     <ul class="list"><li>🧩 ${CONFIG.freeOffline} juegos sin pantallas para esperas y viajes</li><li>🎲 Los primeros ${CONFIG.freeGameDays} días del plan de juegos</li><li>💬 ${CONFIG.freeNormal} respuestas a “¿Es normal que…?”</li><li>👧 El seguimiento de un hijo o hija</li></ul>
     <p class="h-serif h-md mt">Si un día querés todo lo que tiene 🔒</p>
-    <ol class="steps"><li>Tocá la coronita 👑 de arriba.</li><li>Elegí <strong>Suscribirme en Hotmart</strong> y completá el pago.</li><li>Volvé a la app y escribí el correo con el que pagaste. Se desbloquea todo.</li></ol>
+    <ol class="steps"><li>Tocá la coronita 👑 de arriba.</li><li>Elegí <strong>Suscribirme en Hotmart</strong> y completá el pago.</li><li>Volvé a esta misma app, sin instalarla de nuevo aunque Hotmart te mande la guía, y escribí el correo con el que pagaste. Se desbloquea todo.</li></ol>
     <button class="btn btn-primary btn-block mt" onclick="closeModal()">Entendido, empezar</button>`);
 }
 function maybeAskAfterCheckout(){
